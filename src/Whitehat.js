@@ -37,25 +37,31 @@ export default function Whitehat(props){
 
             const stateData = props.data.states;
 
-            //EDIT THIS TO CHANGE WHAT IS USED TO ENCODE COLOR
-            const getEncodedFeature = d => d.count
+            //EDIT THIS TO CHANGE WHAT IS USED TO ENCODE COLOR - DONE
+            //Normalize count by population
+            //This gives number of deaths by gun per 100,000 people
+            const getEncodedFeature = d => (d.count/d.population) * 100000;
 
             //this section of code sets up the colormap
             const stateCounts = Object.values(stateData).map(getEncodedFeature);
+            console.log(stateCounts);
 
             //get color extends for the color legend
             const [stateMin,stateMax] = d3.extent(stateCounts);
 
             //color map scale, scales numbers to a smaller range to use with a d3 color scale
-            //we're using 1-0 to invert the red-yellow-green color scale
-            //so red is bad (p.s. this is not a good color scheme still)
             const stateScale = d3.scaleLinear()
                 .domain([stateMin,stateMax])
-                .range([1,0]);
+                .range([0,1]);
 
-            //TODO: EDIT HERE TO CHANGE THE COLOR SCHEME
-            //this function takes a number 0-1 and returns a color
-            const colorMap = d3.interpolateRdYlGn;
+            //TODO: EDIT HERE TO CHANGE THE COLOR SCHEME - DONE
+            //Edited color scheme
+            var colors = ["#FFFFCC", "#FED976", "#FD8D3C", "#EA5913", "#BD0026"];
+
+            const colorMap = d3.scaleLinear()
+                    .domain(d3.range(0, 1, 1.0 / (colors.length - 1)))
+                    .range(colors);
+            //const colorMap = d3.interpolateRgb("#e0ecf4", "#e34a33");
 
             //this set of functions extracts the features given the state name from the geojson
             function getCount(name){
@@ -101,7 +107,7 @@ export default function Whitehat(props){
                     let sname = d.properties.NAME;
                     let count = getCount(sname);
                     let text = sname + '</br>'
-                        + 'Gun Deaths: ' + count;
+                        + 'Gun Deaths per 100,000 state citizens: ' + count;
                     tTip.html(text);
                 }).on('mousemove',(e)=>{
                     //see app.js for the helper function that makes this easier
@@ -112,10 +118,11 @@ export default function Whitehat(props){
                 });
 
 
-            //TODO: replace or edit the code below to change the city marker being used. Hint: think of the cityScale range (perhaps use area rather than radius). 
+            //TODO: replace or edit the code below to change the city marker being used. 
+            //Hint: think of the cityScale range (perhaps use area rather than radius). 
             //draw markers for each city
             const cityData = props.data.cities
-            const cityMax = d3.max(cityData.map(d=>d.count));
+            const cityMax = d3.max(cityData.map(d=>(d.count)));
             const cityScale = d3.scaleLinear()
                 .domain([0,cityMax])
                 .range([0,maxRadius]);
@@ -130,8 +137,26 @@ export default function Whitehat(props){
                 .attr('id',d=>d.key)
                 .attr('cx',d=> projection([d.lng,d.lat])[0])
                 .attr('cy',d=> projection([d.lng,d.lat])[1])
-                .attr('r',d=>cityScale(d.count))
-                .attr('opacity',.5);                
+                .attr('r',d=>Math.sqrt(d.count/Math.PI))
+                .attr('opacity',.5)
+                .on('mouseover',(e,d)=>{
+                    let city = cleanString(d.city);
+                    //this updates the brushed state
+                    if(props.brushedState !== city){
+                        props.setBrushedState(city);
+                    }
+                    let cname = d.city;
+                    let count = d.count;
+                    let text = cname + '</br>'
+                        + 'Gun Deaths in this city: ' + count;
+                    tTip.html(text);
+                }).on('mousemove',(e)=>{
+                    //see app.js for the helper function that makes this easier
+                    props.ToolTip.moveTTipEvent(tTip,e);
+                }).on('mouseout',(e,d)=>{
+                    props.setBrushedState();
+                    props.ToolTip.hideTTip(tTip);
+                });                
 
             
             //draw a color legend, automatically scaled based on data extents
@@ -201,9 +226,10 @@ export default function Whitehat(props){
         //set up zooming
         function zoomed(event) {
             const {transform} = event;
+            
             mapGroupSelection
                 .attr("transform", transform)
-               .attr("stroke-width", 1 / transform.k);
+                .attr("stroke-width", 1 / transform.k);
         }
 
         const zoom = d3.zoom()
