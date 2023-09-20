@@ -12,7 +12,7 @@ export default function Whitehat(props){
     var isZoomed = false;
 
     //TODO: change the line below to change the size of the white-hat maximum bubble size
-    const maxRadius = width/100;
+    const maxRadius = width/10;
 
     //albers usa projection puts alaska in the corner
     //this automatically convert latitude and longitude to coordinates on the svg canvas
@@ -107,7 +107,7 @@ export default function Whitehat(props){
                     let sname = d.properties.NAME;
                     let count = getCount(sname);
                     let text = sname + '</br>'
-                        + 'Gun Deaths per 100,000 state citizens: ' + count;
+                        + 'Gun Deaths per 100,000 state citizens: </br>' + count;
                     tTip.html(text);
                 }).on('mousemove',(e)=>{
                     //see app.js for the helper function that makes this easier
@@ -121,6 +121,10 @@ export default function Whitehat(props){
             //TODO: replace or edit the code below to change the city marker being used. 
             //Hint: think of the cityScale range (perhaps use area rather than radius). 
             //draw markers for each city
+            
+            //IDEA: Instead of circles, draw and color code city shapes?
+            //IDEA: Map mouseover to city limits/shapes, still draw the circle tho. 
+
             const cityData = props.data.cities
             const cityMax = d3.max(cityData.map(d=>(d.count)));
             const cityScale = d3.scaleLinear()
@@ -130,15 +134,15 @@ export default function Whitehat(props){
             mapGroup.selectAll('.city').remove();
 
             //TODO: Add code for a tooltip when you mouse over the city (hint: use the same code for the state tooltip events .on... and modify what is used for the tTip.html)
-            //OPTIONAL: change the color or opacity
+            //OPTIONAL: change the color or opacity 
             mapGroup.selectAll('.city')
                 .data(cityData).enter()
                 .append('circle').attr('class','city')
                 .attr('id',d=>d.key)
                 .attr('cx',d=> projection([d.lng,d.lat])[0])
                 .attr('cy',d=> projection([d.lng,d.lat])[1])
-                .attr('r',d=>Math.sqrt(d.count/Math.PI))
-                .attr('opacity',.5)
+                .attr('r',d=>Math.sqrt(cityScale(d.count)/Math.PI))
+                .attr('opacity',0.5)
                 .on('mouseover',(e,d)=>{
                     let city = cleanString(d.city);
                     //this updates the brushed state
@@ -148,15 +152,14 @@ export default function Whitehat(props){
                     let cname = d.city;
                     let count = d.count;
                     let text = cname + '</br>'
-                        + 'Gun Deaths in this city: ' + count;
-                    tTip.html(text);
-                }).on('mousemove',(e)=>{
+                        + 'Gun Deaths in city: ' + count;
+                    tTip.html(text);})
+                    .on('mousemove',(e)=>{
                     //see app.js for the helper function that makes this easier
-                    props.ToolTip.moveTTipEvent(tTip,e);
-                }).on('mouseout',(e,d)=>{
+                    props.ToolTip.moveTTipEvent(tTip,e);})
+                    .on('mouseout',(e,d)=>{
                     props.setBrushedState();
-                    props.ToolTip.hideTTip(tTip);
-                });                
+                    props.ToolTip.hideTTip(tTip);});                
 
             
             //draw a color legend, automatically scaled based on data extents

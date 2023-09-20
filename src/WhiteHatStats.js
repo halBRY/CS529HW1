@@ -33,14 +33,18 @@ export default function WhiteHatStats(props){
                 'count': state.count,
                 'name': state.state,
                 'easeOfDrawing': dd === undefined? 5: dd,
-                'genderRatio': state.male_count/state.count,
+                'male_count': state.male_count,
+                'female_count' : state.female_count,
+                'genderRatio': state.male_count/state.count, 
+                '2012_count': state.twelve_count,
+                '2013_count': state.thirt_count
             }
             plotData.push(entry)
         }
 
         //get transforms for each value into x and y coordinates
-        let xScale = d3.scaleLinear()
-            .domain(d3.extent(plotData,d=>d.easeOfDrawing))
+        let xScale = d3.scaleOrdinal()
+            .domain(d3.extent(plotData,d=>d.name))
             .range([margin+radius,width-margin-radius]);
         let yScale = d3.scaleLinear()
             .domain(d3.extent(plotData,d=>d.count))
