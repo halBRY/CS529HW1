@@ -13,3 +13,4 @@ Other sources are in the Data Processing python file. These weren't used in the 
 
 Other Sources: 
 Bar chart adapted from this code: https://d3-graph-gallery.com/graph/barplot_basic.html
+Color Scale Inspired and map normalization inspired by: https://www.cdc.gov/nchs/pressroom/sosmap/firearm_mortality/firearm.htm 
