@@ -68,11 +68,11 @@ export default function WhiteHatStats(props){
             .attr('fill',d=> colorScale(d.genderRatio))
             .attr('r',6)
             .style('stroke', "black")
-            .attr('stroke-width', 0.75)
+            .attr('stroke-width', 1)
             .on('mouseover',function(e, d){
                 d3.select(this).transition()
                     .duration('50')
-                    .attr('stroke-width', 1.75)
+                    .attr('stroke-width', 2)
                 let string = d.name + '</br>'
                     + 'Gun Deaths: ' + d.count + '</br>'
                     + 'Percentage of Male: ' + d.genderRatio;
@@ -83,7 +83,7 @@ export default function WhiteHatStats(props){
             }).on('mouseout',function(e, d){
                 d3.select(this).transition()
                     .duration('50')
-                    .attr('stroke-width', 0.75)
+                    .attr('stroke-width', 1)
                 props.ToolTip.hideTTip(tTip);
             });
            
@@ -114,22 +114,29 @@ export default function WhiteHatStats(props){
             .attr('text-anchor','middle')
             .attr('font-size',labelSize)
             .attr('font-weight','bold')
-            .text('Gender Ratio of Gun Deaths');
+            .text('Gender Ratio of Gun Deaths for each State');
 
         //change the disclaimer here
         svg.append('text')
-            .attr('x',width - 150)
-            .attr('y', 45)
-            .attr('text-anchor','end')
-            .attr('font-size',10)
+            .attr('x',width/2 + width/4)
+            .attr('y', labelSize*2.5)
+            .attr('text-anchor','middle')
+            .attr('font-size',12)
             .text("More male victims than female victims");
 
         svg.append('text')
-            .attr('x',width/3 + 10)
-            .attr('y', 45)
-            .attr('text-anchor','end')
-            .attr('font-size',10)
+            .attr('x',width/4)
+            .attr('y', labelSize*2.5)
+            .attr('text-anchor','middle')
+            .attr('font-size',12)
             .text("More female victims than male victims");
+        
+        svg.append('text')
+            .attr('x',width/2)
+            .attr('y', height - labelSize + 10)
+            .attr('text-anchor','middle')
+            .attr('font-size',12)
+            .text("Percentage of male victims");
 
         //draw basic axes using the x and y scales
         svg.selectAll('g').remove()

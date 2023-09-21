@@ -119,11 +119,6 @@ export default function Whitehat(props){
 
             //TODO: replace or edit the code below to change the city marker being used. 
             //Hint: think of the cityScale range (perhaps use area rather than radius). 
-            //draw markers for each city
-            
-            //IDEA: Instead of circles, draw and color code city shapes?
-            //IDEA: Map mouseover to city limits/shapes, still draw the circle tho. 
-
             const cityData = props.data.cities
             const cityMax = d3.max(cityData.map(d=>(d.count)));
             const cityScale = d3.scaleLinear()
@@ -148,7 +143,7 @@ export default function Whitehat(props){
                         d3.select(this).transition()
                             .duration('50')
                             .attr('stroke', 'white')
-                            .attr('stroke-width', 0.25)
+                            .attr('stroke-width', 0.75)
                         let city = cleanString(d.city);
                         let cname = d.city;
                         let count = d.count;

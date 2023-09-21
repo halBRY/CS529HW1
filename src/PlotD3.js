@@ -41,6 +41,8 @@ export default function PlotD3(props){
             plotData.push(entry)
         }
 
+        const [countMin, countMax] = d3.extent(plotData,d=>d.count);
+        const [deathMin, deathMax] = d3.extent(plotData,d=>d.deaths);
 
         //get transforms for each value into x and y coordinates
         var xScale = d3.scaleBand()
@@ -49,14 +51,13 @@ export default function PlotD3(props){
             .padding(0.4);
 
         let yScale = d3.scaleLinear()
-            .domain(d3.extent(plotData,d=>d.count))
+            .domain([500, countMax])
             .range([height-margin,margin]);
     
-        
-        //scale color by gender ratio for no reason
+        //scale color by incident deaths
         let colorScale = d3.scaleLinear()
             .domain(d3.extent(plotData,d=>d.deaths))
-            .range(['#f7fcf5','#006d2c']);
+            .range(['#f1fbee','#00441b']);
 
         //Order the months chronologically
         plotData.sort(function(a, b) {
@@ -73,9 +74,9 @@ export default function PlotD3(props){
             .enter()
             .append("rect")
               .attr("x", function(d) { return xScale(d.month) + 20; })
-              .attr("y", function(d) { return yScale(d.count) - 48; })
+              .attr("y", function(d) { return yScale(d.count); })
               .attr("width", xScale.bandwidth())
-              .attr("height", function(d) { return height - yScale(d.count); })
+              .attr("height", function(d) { return height - margin - yScale(d.count); })
               .attr("fill", d=> colorScale(d.deaths))
               .attr("opacity", 1)
               .on('mouseover',function(e, d){
@@ -108,25 +109,32 @@ export default function PlotD3(props){
             .text('Death Count per Month');
 
         svg.append('text')
-            .attr('x',width/3 + 10)
-            .attr('y', 45)
-            .attr('text-anchor','end')
-            .attr('font-size',10)
-            .text("");
+            .attr('x',width/2)
+            .attr('y', labelSize * 2.5)
+            .attr('text-anchor','middle')
+            .attr('font-size',15)
+            .text("Color of bar represents the highest number of deaths in one incident");
+
+        svg.append('text')
+            .attr('x',width/2)
+            .attr('y', height - labelSize + 10)
+            .attr('text-anchor','middle')
+            .attr('font-size',12)
+            .text("Month and Year");
 
 
         //draw basic axes using the x and y scales
         svg.selectAll('g').remove()
         svg.append('g')
-            .attr('transform',`translate(20,${height-margin+1})`)
+            .attr('transform',`translate(20,${height-margin})`)
             .call(d3.axisBottom(xScale))
 
         svg.append('g')
             .attr('transform',`translate(${margin-4},0)`)
             .call(d3.axisLeft(yScale))
-        
+
     },[svg,props.data]);
-    //the stuff in brackets what we listen for chagnes too. If you want to re-draw on other property changes add them here
+    //the stuff in brackets what we listen for changes too. If you want to re-draw on other property changes add them here
     
     return (
         <div

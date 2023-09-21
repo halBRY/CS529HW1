@@ -84,8 +84,13 @@ function App() {
                 className={'shadow'}
                 style={{'height': '100%','width':'14em','display':'inline-block','verticalAlign':'text-bottom'}}
               >
-                <h1>{'Instructions'}</h1>
+                <h1>{'Info'}</h1>
                 <p>{'Click on each state to zoom and unzoom'}</p>
+                <p>{'Hover over data point for more information'}</p>
+                <p>
+                  {'Dataset of >12,000 gun violence victims from '} 
+                  <a href="https://www.slate.com/articles/news_and_politics/crime/2012/12/gun_death_tally_every_american_gun_death_since_newtown_sandy_hook_shooting.html">Slate.com</a>
+                </p>
               </div>
               <div 
                 className={'title'} 
