@@ -44,7 +44,6 @@ export default function Whitehat(props){
 
             //this section of code sets up the colormap
             const stateCounts = Object.values(stateData).map(getEncodedFeature);
-            console.log(stateCounts);
 
             //get color extends for the color legend
             const [stateMin,stateMax] = d3.extent(stateCounts);
@@ -133,43 +132,57 @@ export default function Whitehat(props){
 
             mapGroup.selectAll('.city').remove();
 
-            //TODO: Add code for a tooltip when you mouse over the city (hint: use the same code for the state tooltip events .on... and modify what is used for the tTip.html)
-            //OPTIONAL: change the color or opacity 
-            mapGroup.selectAll('.city')
-                .data(cityData).enter()
-                .append('circle').attr('class','city')
-                .attr('id',d=>d.key)
-                .attr('cx',d=> projection([d.lng,d.lat])[0])
-                .attr('cy',d=> projection([d.lng,d.lat])[1])
-                .attr('r',d=>Math.sqrt(cityScale(d.count)/Math.PI))
-                .attr('opacity',0.5)
-                .on('mouseover',(e,d)=>{
-                    let city = cleanString(d.city);
-                    //this updates the brushed state
-                    if(props.brushedState !== city){
-                        props.setBrushedState(city);
-                    }
-                    let cname = d.city;
-                    let count = d.count;
-                    let text = cname + '</br>'
-                        + 'Gun Deaths in city: ' + count;
-                    tTip.html(text);})
+            d3.selectAll(".check_box").on('change', function() {
+                if(this.checked) {
+                    //TODO: Add code for a tooltip when you mouse over the city (hint: use the same code for the state tooltip events .on... and modify what is used for the tTip.html)
+                    //OPTIONAL: change the color or opacity 
+                    mapGroup.selectAll('.city')
+                    .data(cityData).enter()
+                    .append('circle').attr('class','city')
+                    .attr('id',d=>d.key)
+                    .attr('cx',d=> projection([d.lng,d.lat])[0])
+                    .attr('cy',d=> projection([d.lng,d.lat])[1])
+                    .attr('r',d=>Math.sqrt(cityScale(d.count)/Math.PI))
+                    .attr('opacity',0.5)
+                    .on('mouseover',function(e, d){
+                        d3.select(this).transition()
+                            .duration('50')
+                            .attr('stroke', 'white')
+                            .attr('stroke-width', 0.25)
+                        let city = cleanString(d.city);
+                        let cname = d.city;
+                        let count = d.count;
+                        let text = cname + '</br>'
+                            + 'Gun Deaths in city: ' + count;
+                        tTip.html(text);
+                    })
                     .on('mousemove',(e)=>{
-                    //see app.js for the helper function that makes this easier
-                    props.ToolTip.moveTTipEvent(tTip,e);})
-                    .on('mouseout',(e,d)=>{
-                    props.setBrushedState();
-                    props.ToolTip.hideTTip(tTip);});                
+                        //see app.js for the helper function that makes this easier
+                        props.ToolTip.moveTTipEvent(tTip,e);
+                    })
+                    .on('mouseout',function(e, d){
+                        props.setBrushedState();
+                        props.ToolTip.hideTTip(tTip);
+                        d3.select(this).transition()
+                            .duration('50')
+                            .attr('stroke', 'none')
+                    });                
+                }
+                else
+                {
+                    mapGroup.selectAll('.city').remove();
+                }
+            });
 
-            
+           
             //draw a color legend, automatically scaled based on data extents
             function drawLegend(){
                 let bounds = mapGroup.node().getBBox();
-                const barHeight = Math.min(height/10,40);
+                const barHeight = Math.min(height/12,40);
                 
                 let legendX = bounds.x + 10 + bounds.width;
                 const barWidth = Math.min((width - legendX)/3,40);
-                const fontHeight = Math.min(barWidth/2,16);
+                const fontHeight = Math.min(barWidth/3,16);
                 let legendY = bounds.y + 2*fontHeight;
                 
                 let colorLData = [];
@@ -194,27 +207,30 @@ export default function Whitehat(props){
                 svg.selectAll('.legendRect')
                     .data(colorLData).enter()
                     .append('rect').attr('class','legendRect')
-                    .attr('x',d=>d.x)
-                    .attr('y',d=>d.y)
+                    .attr('x',d=>d.x + (width/15))
+                    .attr('y',d=>d.y + (height/10))
                     .attr('fill',d=>d.color)
+                    .attr('stroke', 'white')
+                    .attr('stroke-width', 2)
                     .attr('height',barHeight)
                     .attr('width',barWidth);
     
                 svg.selectAll('.legendText').remove();
                 const legendTitle = {
-                    'x': legendX - barWidth,
-                    'y': bounds.y,
-                    'text': 'Gun Deaths' 
+                    'x': legendX - (barWidth + (width/20)),
+                    'y': bounds.y - (height/25),
+                    'text': 'Gun Deaths per 100,000 people' 
                 }
                 svg.selectAll('.legendText')
                     .data([legendTitle].concat(colorLData)).enter()
                     .append('text').attr('class','legendText')
-                    .attr('x',d=>d.x+barWidth+5)
-                    .attr('y',d=>d.y+barHeight/2 + fontHeight/4)
+                    .attr('x',d=>d.x+barWidth+5+(width/15))
+                    .attr('y',d=>d.y+barHeight/2 + fontHeight/4 + (height/10))
                     .attr('font-size',(d,i) => i == 0? 1.2*fontHeight:fontHeight)
-                    .text(d=>d.text);
+                    .text(d=>d.text)
+                    .style("font-weight", 'bold');
             }
-
+            
             drawLegend();
             return mapGroup
         }
@@ -273,10 +289,18 @@ export default function Whitehat(props){
             }
         }
         
-
         mapGroupSelection.selectAll('.state')
             .attr('cursor','pointer')//so we know the states are clickable
             .on('click',clicked);
+
+        //This doesn't serve any fuction, I was just experimenting and wanted to keep this around so I remember how to do it if I ever want to
+        //This changes the color of cities when you click on them
+        //Magenta for highlighted, black is default. 
+        /*
+        mapGroupSelection.selectAll('.city')
+            .attr('cursor','pointer')//so we know the states are clickable
+            .on('click',function(){var nextColor = this.style.fill == "magenta" ? "black" : "magenta";
+            d3.select(this).style("fill", nextColor);});*/
 
     },[mapGroupSelection]);
 

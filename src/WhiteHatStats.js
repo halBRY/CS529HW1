@@ -42,29 +42,17 @@ export default function WhiteHatStats(props){
             plotData.push(entry)
         }
 
+        const [ratioMin,ratioMax] = d3.extent(plotData, d=>d.genderRatio);
+        const [countMin, countMax] = d3.extent(plotData,d=>d.count);
+
         //get transforms for each value into x and y coordinates
-        let xScale = d3.scaleOrdinal()
-            .domain(d3.extent(plotData,d=>d.name))
+        let xScale = d3.scaleLinear()
+            .domain([0,1])
             .range([margin+radius,width-margin-radius]);
         let yScale = d3.scaleLinear()
             .domain(d3.extent(plotData,d=>d.count))
             .range([height-margin-radius,margin+radius]);
-
-
-        //draw a line showing the mean values across the curve
-        //this probably isn't actually regression
-        const regressionLine = [];
-        for(let i = 0; i <= 10; i+= 1){
-            let pvals = plotData.filter(d => Math.abs(d.easeOfDrawing - i) <= .5);
-            let meanY = 0;
-            if(pvals.length > 0){
-                for(let entry of pvals){
-                    meanY += entry.count/pvals.length
-                }
-            }
-            let point = [xScale(i),yScale(meanY)]
-            regressionLine.push(point)
-        }
+    
         
         //scale color by gender ratio for no reason
         let colorScale = d3.scaleDiverging()
@@ -76,31 +64,49 @@ export default function WhiteHatStats(props){
         svg.selectAll('.dot').data(plotData)
             .enter().append('circle')
             .attr('cy',d=> yScale(d.count))
-            .attr('cx',d=>xScale(d.easeOfDrawing))
+            .attr('cx',d=>xScale(d.genderRatio))
             .attr('fill',d=> colorScale(d.genderRatio))
-            .attr('r',10)
-            .on('mouseover',(e,d)=>{
+            .attr('r',6)
+            .style('stroke', "black")
+            .attr('stroke-width', 0.75)
+            .on('mouseover',function(e, d){
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('stroke-width', 1.75)
                 let string = d.name + '</br>'
                     + 'Gun Deaths: ' + d.count + '</br>'
-                    + 'Difficulty Drawing: ' + d.easeOfDrawing;
+                    + 'Percentage of Male: ' + d.genderRatio;
                 props.ToolTip.moveTTipEvent(tTip,e)
                 tTip.html(string)
             }).on('mousemove',(e)=>{
                 props.ToolTip.moveTTipEvent(tTip,e);
-            }).on('mouseout',(e,d)=>{
+            }).on('mouseout',function(e, d){
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('stroke-width', 0.75)
                 props.ToolTip.hideTTip(tTip);
             });
            
         //draw the line
-        svg.selectAll('.regressionLine').remove();
-        svg.append('path').attr('class','regressionLine')
-            .attr('d',d3.line().curve(d3.curveBasis)(regressionLine))
-            .attr('stroke-width',5)
-            .attr('stroke','black')
+        const midLine = [];
+
+        let point = [xScale(.5),yScale(countMax+30)]
+        midLine.push(point);
+
+        point = [xScale(.5),yScale(countMin-30)]
+        midLine.push(point);
+
+    
+        svg.selectAll('.midLine').remove();
+        svg.append('path').attr('class','midLine')
+            .style("stroke-dasharray", ("3, 3"))
+            .attr('d',d3.line().curve(d3.curveBasis)(midLine))
+            .attr('stroke-width',1)
+            .attr('stroke','gray')
             .attr('fill','none');
 
         //change the title
-        const labelSize = margin/2;
+        const labelSize = margin/3;
         svg.selectAll('text').remove();
         svg.append('text')
             .attr('x',width/2)
@@ -108,15 +114,22 @@ export default function WhiteHatStats(props){
             .attr('text-anchor','middle')
             .attr('font-size',labelSize)
             .attr('font-weight','bold')
-            .text('How Hard it Is To Draw Each State Vs Gun Deaths');
+            .text('Gender Ratio of Gun Deaths');
 
         //change the disclaimer here
         svg.append('text')
-            .attr('x',width-20)
-            .attr('y',height/3)
+            .attr('x',width - 150)
+            .attr('y', 45)
             .attr('text-anchor','end')
             .attr('font-size',10)
-            .text("I'm just asking questions");
+            .text("More male victims than female victims");
+
+        svg.append('text')
+            .attr('x',width/3 + 10)
+            .attr('y', 45)
+            .attr('text-anchor','end')
+            .attr('font-size',10)
+            .text("More female victims than male victims");
 
         //draw basic axes using the x and y scales
         svg.selectAll('g').remove()

@@ -4,6 +4,7 @@ import Whitehat from './Whitehat';
 import WhiteHatStats from './WhiteHatStats'
 import Blackhat from './Blackhat';
 import BlackHatStats from './BlackHatStats';
+import PlotD3 from './PlotD3.js';
 import * as d3 from 'd3';
 
 
@@ -59,7 +60,12 @@ function App() {
     
         return (
           <>
-            <div style={{'width':'100%','height':'50%','display':'inline-block'}}>
+            <div className={'title'} 
+                style={{'height':'2em','width':'100%','fontWeight':'bold'}}
+              >
+                {'United States Gun Deaths in 2012-2013'}
+            </div>
+            <div style={{'width':'100%','height':'50%','display':'inline-block', 'position': 'relative'}}>
               <div 
                 style={{'height': '100%','width':'calc(100% - 15em)','display':'inline-block'}}
               >
@@ -81,14 +87,17 @@ function App() {
                 <h1>{'Instructions'}</h1>
                 <p>{'Click on each state to zoom and unzoom'}</p>
               </div>
-            </div>
-            <div style={{'height': '49%','width':'99%'}}>
-              <div className={'title'} 
-                style={{'height':'2em','width':'100%','fontWeight':'bold','fontFamily':'Georgia'}}
+              <div 
+                className={'title'} 
+                style={{'height':'2em','width':'100%'}}
               >
-                {'Gun Deaths'}
+                <p>{'Circle size indicative of death count'}</p>
+                <input type="checkbox" id="visualCities" class="check_box"/>
+			          <label for="visualCities">Toggle City Marks</label> 
               </div>
-              <div style={{'height': 'calc(100% - 2em)','width': '50%','maxWidth': '60em','marginLeft':'25%'}}>
+            </div>
+            <div style={{'height': '49%','width':'100%'}}>
+              <div style={{'height': 'calc(100% - 2em)','width': '40%','maxWidth': '60em','marginLeft':'2%', 'display':'inline-block'}}>
                 <WhiteHatStats
                   data={gunData}
                   ToolTip={ToolTip}
@@ -97,6 +106,14 @@ function App() {
                   zoomedState={zoomedState}
                 />     
               </div>   
+              <div style={{'height': 'calc(100% - 2em)','width': '45%','maxWidth': '60em','marginLeft':'2%', 'display':'inline-block'}}>
+              <PlotD3 
+                data= {gunData} 
+                ToolTip={ToolTip}
+                brushedState={brushedState}
+                setBrushedState={setBrushedState} 
+              />
+              </div> 
             </div>
           </>
         )
@@ -217,5 +234,7 @@ class ToolTip {
       return canvas
   }
 }
+
+
 
 export default App;
